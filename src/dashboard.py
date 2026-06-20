@@ -25,9 +25,12 @@ def _q(sql):
     return df
 
 
+# Must be defined before app.layout uses it
 def _card(**extra):
-    base = {'background': C['card'], 'borderRadius': '10px',
-            'padding': '14px', 'boxShadow': '0 2px 8px rgba(0,0,0,0.08)'}
+    base = {
+        'background': C['card'], 'borderRadius': '10px',
+        'padding': '14px', 'boxShadow': '0 2px 8px rgba(0,0,0,0.08)',
+    }
     return {**base, **extra}
 
 
@@ -68,12 +71,12 @@ app.layout = html.Div([
         html.Div(id='kpis', style={'display': 'flex', 'gap': '14px',
                                     'flexWrap': 'wrap', 'marginBottom': '18px'}),
         html.Div([
-            html.Div([dcc.Graph(id='trend')],    style={**_card(), 'flex': '2'}),
-            html.Div([dcc.Graph(id='cat-pie')],  style={**_card(), 'flex': '1'}),
+            html.Div([dcc.Graph(id='trend')],   style={**_card(), 'flex': '2'}),
+            html.Div([dcc.Graph(id='cat-pie')], style={**_card(), 'flex': '1'}),
         ], style={'display': 'flex', 'gap': '14px', 'marginBottom': '14px'}),
         html.Div([
-            html.Div([dcc.Graph(id='reg-bar')],  style={**_card(), 'flex': '1'}),
-            html.Div([dcc.Graph(id='seg-bar')],  style={**_card(), 'flex': '1'}),
+            html.Div([dcc.Graph(id='reg-bar')], style={**_card(), 'flex': '1'}),
+            html.Div([dcc.Graph(id='seg-bar')], style={**_card(), 'flex': '1'}),
         ], style={'display': 'flex', 'gap': '14px', 'marginBottom': '14px'}),
         html.Div([dcc.Graph(id='cohort')], style=_card()),
     ], style={'padding': '20px 30px', 'background': C['bg']}),
@@ -97,11 +100,11 @@ def update(yr, rgn):
     df   = df.merge(prod, on='product_id', how='left')
 
     kpis = [
-        kpi('Total Revenue',    f"${df['revenue'].sum():,.0f}",       C['accent']),
-        kpi('Total Profit',     f"${df['profit'].sum():,.0f}",        C['success']),
-        kpi('Orders',           f"{df['order_id'].nunique():,}",       C['warning']),
-        kpi('Unique Customers', f"{df['customer_id'].nunique():,}",    C['purple']),
-        kpi('Avg Order Value',  f"${df['revenue'].mean():,.0f}",       C['danger']),
+        kpi('Total Revenue',    f"${df['revenue'].sum():,.0f}",      C['accent']),
+        kpi('Total Profit',     f"${df['profit'].sum():,.0f}",       C['success']),
+        kpi('Orders',           f"{df['order_id'].nunique():,}",      C['warning']),
+        kpi('Unique Customers', f"{df['customer_id'].nunique():,}",   C['purple']),
+        kpi('Avg Order Value',  f"${df['revenue'].mean():,.0f}",      C['danger']),
     ]
 
     monthly = (df.groupby('year_month')
@@ -117,19 +120,19 @@ def update(yr, rgn):
                         plot_bgcolor='white', paper_bgcolor='white',
                         height=300, margin={'t':40,'b':40})
 
-    cat   = df.groupby('category')['revenue'].sum().reset_index()
-    cpie  = px.pie(cat, values='revenue', names='category', title='By Category',
-                   color_discrete_sequence=px.colors.qualitative.Set2, height=300)
+    cat  = df.groupby('category')['revenue'].sum().reset_index()
+    cpie = px.pie(cat, values='revenue', names='category', title='By Category',
+                  color_discrete_sequence=px.colors.qualitative.Set2, height=300)
     cpie.update_layout(paper_bgcolor='white', margin={'t':40,'b':0})
 
-    reg   = df.groupby('region')['revenue'].sum().reset_index().sort_values('revenue')
-    rbar  = px.bar(reg, x='revenue', y='region', orientation='h', title='By Region',
-                   color='revenue', color_continuous_scale='Blues', height=280)
+    reg  = df.groupby('region')['revenue'].sum().reset_index().sort_values('revenue')
+    rbar = px.bar(reg, x='revenue', y='region', orientation='h', title='By Region',
+                  color='revenue', color_continuous_scale='Blues', height=280)
     rbar.update_layout(plot_bgcolor='white', paper_bgcolor='white',
                        showlegend=False, margin={'t':40,'b':30})
 
-    seg   = df.groupby('segment').agg(revenue=('revenue','sum'), profit=('profit','sum')).reset_index()
-    sbar  = go.Figure([
+    seg  = df.groupby('segment').agg(revenue=('revenue','sum'), profit=('profit','sum')).reset_index()
+    sbar = go.Figure([
         go.Bar(name='Revenue', x=seg['segment'], y=seg['revenue'], marker_color=C['accent']),
         go.Bar(name='Profit',  x=seg['segment'], y=seg['profit'],  marker_color=C['success']),
     ])
